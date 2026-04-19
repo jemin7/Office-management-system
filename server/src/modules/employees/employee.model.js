@@ -24,10 +24,10 @@ const EmployeeSchema = new mongoose.Schema(
     },
     department: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Department",
+      ref: "department",
       required: [true, "Department is required"],
     },
-    Supervisor: {
+    supervisor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Employee",
       default: null,
