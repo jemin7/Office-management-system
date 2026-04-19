@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 5000;
 async function start() {
   await connectDB();
 
-  app.listen(PORT, () => {
+  return app.listen(PORT, () => {
     console.log(
       `sever is running on the PORT:${PORT} in ${process.env.NODE_ENV} mode`,
     );
