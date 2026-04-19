@@ -56,6 +56,31 @@ const getAllService = async (query) => {
     limit: limitNum,
     data: employees,
   };
+
+  const getOneService = async (id) => {
+    const employee = Employee.findById(id)
+      .populate("department")
+      .populate("super");
+
+    if (!employee) {
+      throw ApiError.notFound("Employee not found");
+    }
+    return employee;
+  };
+
+  const removeSerivce = async (id) => {
+    const employee = Employee.findById(id);
+    if (!employee) {
+      throw ApiError.notFound("Employee not found");
+    }
+    return employee;
+  };
 };
 
-export { createService, getAllService };
+export {
+  createService,
+  getAllService,
+  getOneService,
+  updateService,
+  removeService,
+};

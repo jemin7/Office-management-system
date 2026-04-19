@@ -9,5 +9,15 @@ const createdepartment = async (data) => {
       return name
 }
 
+const getAllDepartmentsService = async () => {
+  const departments = await Department.find().sort({ name: 1 });
 
-export default createdepartment
+  if (!departments || departments.length === 0) {
+    throw ApiError.notFound("No departments found");
+  }
+
+  return departments;
+};
+
+
+export { createdepartment, getAllDepartmentsService };

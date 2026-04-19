@@ -11,7 +11,7 @@ const router = Router();
 
 router.post("/employees", validate(createDto), controller.create);
 
-router.get("/employees", validate(queryDto), controller.getAll);
+router.get("/employees", validate(queryDto), controller.getall);
 
 router.get("/employees/:id", controller.getOne);
 
