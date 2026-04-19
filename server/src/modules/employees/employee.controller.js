@@ -1,13 +1,16 @@
-import { createService } from "./employee.service.js";
+import { createService, getAllService } from "./employee.service.js";
 import ApiResponse from "../../common/utils/api-response.js";
 
-const create = async (req, res, next) => {
+const create = async (req, res) => {
   if (req.body.supervisor === "") req.body.supervisor = null;
 
-  const employee = await createService.create(req.body);
+  const employee = await createService(req.body);
   ApiResponse.created(res, "Employee created successfully", employee);
 };
 
-const getall = async (req) => {};
+const getall = async (req, res) => {
+  const data = await getAllService(req.query);
+  ApiResponse.ok(res, "got employees", data);
+};
 
-export { create };
+export { create, getall };
