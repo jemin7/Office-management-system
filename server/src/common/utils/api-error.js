@@ -3,7 +3,18 @@ class ApiError extends Error {
     super(message);
     this.statuscode = statuscode;
     this.isOperational = true;
-    
-    Error.captureStackTrace(this, this.constructor)
+
+    Error.captureStackTrace(this, this.constructor);
+  }
+
+  static badrequest(message = "Bad request") {
+    return new ApiError(400, message);
+  }
+
+  static unauthorized(message = "Unauthorized") {
+    return new ApiError(401, message);
   }
 }
+
+
+export default ApiError
