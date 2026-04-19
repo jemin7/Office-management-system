@@ -12,9 +12,20 @@ const getAllService = async (query) => {
 
   const pageNum = Number(page);
   const limitNum = Number(limit);
+
+  if (
+    Number.isNaN(pageNum) ||
+    Number.isNaN(limitNum) ||
+    pageNum < 1 ||
+    limitNum < 1
+  ) {
+    throw ApiError.badRequest("Invalid pagination input");
+  }
+
   const skip = (pageNum - 1) * limitNum;
 
   const filter = {};
+
   if (search) {
     filter.$or = [
       { name: { $regex: search, $options: "i" } },
@@ -34,7 +45,8 @@ const getAllService = async (query) => {
     .populate("department")
     .populate("supervisor")
     .skip(skip)
-    .limit(limitNum);
+    .limit(limitNum)
+    .sort({ createdAt: -1 });
 
   const total = await Employee.countDocuments(filter);
 
@@ -45,7 +57,5 @@ const getAllService = async (query) => {
     data: employees,
   };
 };
-
-
 
 export { createService, getAllService };

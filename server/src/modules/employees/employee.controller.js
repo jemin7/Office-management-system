@@ -10,7 +10,12 @@ const create = async (req, res) => {
 
 const getall = async (req, res) => {
   const data = await getAllService(req.query);
-  ApiResponse.ok(res, "got employees", data);
+  ApiResponse.ok(res, "got all employees", data);
+};
+
+const getOne = async (req, res) => {
+  const data = await getOneService(req.query);
+  ApiResponse.ok(res, "got one employees", data);
 };
 
 export { create, getall };
