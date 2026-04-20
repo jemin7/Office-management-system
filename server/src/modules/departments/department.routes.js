@@ -5,7 +5,7 @@ import departmentDto from "./dto/department.dto.js";
 
 const router = Router();
 
-router.post("/", validate(departmentDto), controller.create);
+router.post("/", validate(departmentDto.schema), controller.create);
 
 router.get("/", controller.getAll);
 
