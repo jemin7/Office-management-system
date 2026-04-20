@@ -10,6 +10,12 @@ const create = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
-  const department = await getAllDepartmentsService(req.body);
-  ApiResponse.created(res, "department is created", department);
+  const department = await getAllDepartmentsService();
+  ApiResponse.ok(res, "all departments", department);
 };
+
+
+
+
+
+export {create,getAll}
