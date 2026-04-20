@@ -3,7 +3,8 @@ import Employee from "./employee.model.js";
 
 const createService = async (data) => {
   const existing = await Employee.findOne({ email: data.email });
-  if (existing) throw ApiError.conflict("Email already exists");
+  if (existing) throw ApiError.Conflict("Email already exists");
+
   const employee = await Employee.create(data);
   return employee.populate(["department", "supervisor"]);
 };
