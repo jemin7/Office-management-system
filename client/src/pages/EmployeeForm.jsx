@@ -29,25 +29,28 @@ export default function EmployeeForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Load initial data
+  // Load initial dropdown data
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Countries
         const countryRes = await fetch(`${COUNTRIES_API}/countries`);
         const countryData = await countryRes.json();
         setCountries(countryData.data || []);
 
+        // Departments
         const depRes = await api
           .get("/departments")
           .catch(() => ({ data: { data: [] } }));
         setDepartments(depRes.data.data || []);
 
+        // Employees for supervisor dropdown
         const empRes = await api
           .get("/employees")
           .catch(() => ({ data: { data: [] } }));
         setEmployees(empRes.data.data?.data || empRes.data.data || []);
       } catch (err) {
-        console.error("Load data error:", err);
+        console.error("Initial data load error:", err);
       }
     };
     loadData();
@@ -72,7 +75,7 @@ export default function EmployeeForm() {
         setStates(stateList);
       })
       .catch((err) => {
-        console.error("States failed:", err);
+        console.error("Failed to load states:", err);
         setStates([]);
       });
 
@@ -95,14 +98,14 @@ export default function EmployeeForm() {
       .then((res) => res.json())
       .then((data) => setCities(data.data || []))
       .catch((err) => {
-        console.error("Cities failed:", err);
+        console.error("Failed to load cities:", err);
         setCities([]);
       });
 
     setForm((prev) => ({ ...prev, city: "" }));
   }, [form.state, form.country]);
 
-  // Load existing employee for edit
+  // Load existing employee data for editing
   useEffect(() => {
     if (!isEdit) return;
     api
@@ -141,8 +144,11 @@ export default function EmployeeForm() {
       } else {
         await api.post("/employees", payload);
       }
+
+      // Navigate back with refresh flag
       navigate("/employees", { state: { refresh: true } });
     } catch (err) {
+      console.error("Submit error:", err);
       setError(err.response?.data?.message || "Failed to save employee");
     } finally {
       setLoading(false);
@@ -163,6 +169,7 @@ export default function EmployeeForm() {
         </div>
 
         <form onSubmit={handleSubmit} style={styles.form}>
+          {/* Personal Info */}
           <div style={styles.section}>
             <h2 style={styles.sectionTitle}>Personal Info</h2>
             <div style={styles.row}>
@@ -227,7 +234,7 @@ export default function EmployeeForm() {
                   .filter((e) => e._id !== id)
                   .map((e) => (
                     <option key={e._id} value={e._id}>
-                      {e.name} ({e.jobtitle})
+                      {e.name} ({e.jobtitle || "No Title"})
                     </option>
                   ))}
               </select>
