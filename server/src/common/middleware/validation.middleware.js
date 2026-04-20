@@ -12,7 +12,7 @@ const validate = (schema, source = "body") => {
       const message = error.details
         .map((details) => details.message)
         .join(", ");
-      throw ApiError.badRequest(message);
+      return next(ApiError.badRequest(message));
     }
 
     if (source === "query") {

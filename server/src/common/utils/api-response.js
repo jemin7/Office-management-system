@@ -19,12 +19,8 @@ class ApiResponse {
     return res.status(204).send();
   }
 
-  static update(res) {
-    return res.status(204).json({
-      success: true,
-      message,
-      data,
-    });
+  static update(res, message, data = null) {
+    return res.status(200).json({ success: true, message, data });
   }
 }
 

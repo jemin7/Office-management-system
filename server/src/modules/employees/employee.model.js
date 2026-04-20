@@ -25,7 +25,7 @@ const EmployeeSchema = new mongoose.Schema(
     },
     department: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "department",
+      ref: "Department",
       required: [true, "Department is required"],
     },
     supervisor: {
