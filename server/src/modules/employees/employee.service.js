@@ -29,33 +29,36 @@ const getAllService = async (query) => {
     ];
   }
 
-  if (department) filter.department = department;
+  // Ensure department is only added to filter if it's a valid truthy string
+  if (department && department.trim() !== "") {
+    filter.department = department;
+  }
+
   if (jobtitle) filter.jobtitle = { $regex: jobtitle, $options: "i" };
 
-  try {
-    const [employees, total] = await Promise.all([
-      Employee.find(filter)
-        .populate("department", "name") // ← safer, only fetch name
-        .populate("supervisor", "name email jobtitle")
-        .skip(skip)
-        .limit(limitNum)
-        .sort({ createdAt: -1 }),
-      Employee.countDocuments(filter),
-    ]);
+  const [employees, total] = await Promise.all([
+    Employee.find(filter)
+      .populate("department")
+      .populate("supervisor", "name email jobtitle")
+      .skip(skip)
+      .limit(limitNum)
+      // Fix: Added _id: -1 as a fallback sort for manually inserted documents missing timestamps
+      .sort({ createdAt: -1, _id: -1 }),
+    Employee.countDocuments(filter),
+  ]);
 
-    return {
-      total,
-      page: pageNum,
-      limit: limitNum,
-      totalPages: Math.ceil(total / limitNum),
-      data: employees,
-    };
-  } catch (error) {
-    console.error("❌ getAllService Error:", error.message);
-    // Optional: log more details
-    // console.error("Stack:", error.stack);
-    throw ApiError.internal("Failed to fetch employees");
-  }
+  console.log(
+    `Found ${employees.length} employees for page ${pageNum}. Total in DB matching filter: ${total}`,
+  );
+  console.log("Active Filter:", filter);
+
+  return {
+    total,
+    page: pageNum,
+    limit: limitNum,
+    totalPages: Math.ceil(total / limitNum),
+    data: employees,
+  };
 };
 
 const getOneService = async (id) => {
@@ -67,8 +70,6 @@ const getOneService = async (id) => {
 };
 
 const updateService = async (id, data) => {
-  if (data.supervisor === "") data.supervisor = null;
-
   const employee = await Employee.findByIdAndUpdate(id, data, {
     new: true,
     runValidators: true,
