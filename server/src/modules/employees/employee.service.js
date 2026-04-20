@@ -6,7 +6,7 @@ const createService = async (data) => {
   if (existing) throw ApiError.Conflict("Email already exists");
 
   const employee = await Employee.create(data);
-  return employee.populate(["department", "supervisor"]);
+  return await employee.populate(["department", "supervisor"]);
 };
 
 const getAllService = async (query) => {
