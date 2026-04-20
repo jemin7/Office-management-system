@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
 
-const COUNTRIES_API = "https://countriesnow.space/api/v0.1";
+const COUNTRIES_API = "https:
 
 export default function EmployeeForm() {
   const { id } = useParams();
@@ -29,22 +29,22 @@ export default function EmployeeForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Load initial dropdown data
+  
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Countries
+        
         const countryRes = await fetch(`${COUNTRIES_API}/countries`);
         const countryData = await countryRes.json();
         setCountries(countryData.data || []);
 
-        // Departments
+        
         const depRes = await api
           .get("/departments")
           .catch(() => ({ data: { data: [] } }));
         setDepartments(depRes.data.data || []);
 
-        // Employees for supervisor dropdown
+        
         const empRes = await api
           .get("/employees")
           .catch(() => ({ data: { data: [] } }));
@@ -56,7 +56,7 @@ export default function EmployeeForm() {
     loadData();
   }, []);
 
-  // Load states when country changes
+  
   useEffect(() => {
     if (!form.country) {
       setStates([]);
@@ -83,7 +83,7 @@ export default function EmployeeForm() {
     setCities([]);
   }, [form.country]);
 
-  // Load cities when state changes
+  
   useEffect(() => {
     if (!form.country || !form.state) {
       setCities([]);
@@ -105,7 +105,7 @@ export default function EmployeeForm() {
     setForm((prev) => ({ ...prev, city: "" }));
   }, [form.state, form.country]);
 
-  // Load existing employee data for editing
+  
   useEffect(() => {
     if (!isEdit) return;
     api
@@ -145,7 +145,7 @@ export default function EmployeeForm() {
         await api.post("/employees", payload);
       }
 
-      // Navigate back with refresh flag
+      
       navigate("/employees", { state: { refresh: true } });
     } catch (err) {
       console.error("Submit error:", err);
