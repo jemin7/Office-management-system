@@ -29,60 +29,80 @@ export default function EmployeeForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Fetch dropdowns
+  // Load initial data
   useEffect(() => {
-    const init = async () => {
+    const loadData = async () => {
       try {
-        const [dRes, eRes, cRes] = await Promise.all([
-          api.get("/departments"),
-          api.get("/employees", { params: { limit: 100 } }),
-          fetch(`${COUNTRIES_API}/countries`).then((r) => r.json()),
-        ]);
-        setDepartments(dRes.data.data || []);
-        setEmployees(eRes.data.data?.data || []);
-        setCountries(cRes.data || []);
-      } catch (_) {}
+        const countryRes = await fetch(`${COUNTRIES_API}/countries`);
+        const countryData = await countryRes.json();
+        setCountries(countryData.data || []);
+
+        const depRes = await api
+          .get("/departments")
+          .catch(() => ({ data: { data: [] } }));
+        setDepartments(depRes.data.data || []);
+
+        const empRes = await api
+          .get("/employees")
+          .catch(() => ({ data: { data: [] } }));
+        setEmployees(empRes.data.data?.data || empRes.data.data || []);
+      } catch (err) {
+        console.error("Load data error:", err);
+      }
     };
-    init();
+    loadData();
   }, []);
 
-  // Fetch states when country changes
+  // Load states when country changes
   useEffect(() => {
     if (!form.country) {
       setStates([]);
       setCities([]);
       return;
     }
+
     fetch(`${COUNTRIES_API}/countries/states`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ country: form.country }),
     })
-      .then((r) => r.json())
-      .then((data) => setStates(data.data?.states || []))
-      .catch(() => setStates([]));
-    setForm((f) => ({ ...f, state: "", city: "" }));
+      .then((res) => res.json())
+      .then((data) => {
+        const stateList = (data.data?.states || []).map((s) => s.name || s);
+        setStates(stateList);
+      })
+      .catch((err) => {
+        console.error("States failed:", err);
+        setStates([]);
+      });
+
+    setForm((prev) => ({ ...prev, state: "", city: "" }));
     setCities([]);
   }, [form.country]);
 
-  // Fetch cities when state changes
+  // Load cities when state changes
   useEffect(() => {
     if (!form.country || !form.state) {
       setCities([]);
       return;
     }
+
     fetch(`${COUNTRIES_API}/countries/state/cities`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ country: form.country, state: form.state }),
     })
-      .then((r) => r.json())
+      .then((res) => res.json())
       .then((data) => setCities(data.data || []))
-      .catch(() => setCities([]));
-    setForm((f) => ({ ...f, city: "" }));
-  }, [form.state]);
+      .catch((err) => {
+        console.error("Cities failed:", err);
+        setCities([]);
+      });
 
-  // Load existing employee if editing
+    setForm((prev) => ({ ...prev, city: "" }));
+  }, [form.state, form.country]);
+
+  // Load existing employee for edit
   useEffect(() => {
     if (!isEdit) return;
     api
@@ -90,34 +110,38 @@ export default function EmployeeForm() {
       .then((res) => {
         const emp = res.data.data;
         setForm({
-          name: emp.name,
-          email: emp.email,
-          jobtitle: emp.jobtitle,
+          name: emp.name || "",
+          email: emp.email || "",
+          jobtitle: emp.jobtitle || "",
           department: emp.department?._id || "",
           supervisor: emp.supervisor?._id || "",
-          country: emp.country,
-          state: emp.state,
-          city: emp.city,
+          country: emp.country || "",
+          state: emp.state || "",
+          city: emp.city || "",
         });
       })
       .catch(() => navigate("/employees"));
-  }, [id]);
+  }, [id, navigate]);
 
-  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const handleChange = (field) => (e) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
       const payload = { ...form };
-      if (!payload.supervisor) payload.supervisor = null;
+      if (!payload.supervisor) delete payload.supervisor;
+
       if (isEdit) {
         await api.put(`/employees/${id}`, payload);
       } else {
         await api.post("/employees", payload);
       }
-      navigate("/employees");
+      navigate("/employees", { state: { refresh: true } });
     } catch (err) {
       setError(err.response?.data?.message || "Failed to save employee");
     } finally {
@@ -126,57 +150,59 @@ export default function EmployeeForm() {
   };
 
   return (
-    <div style={styles.page}>
+    <div style={styles.container}>
       <Navbar />
-      <div style={styles.container}>
+      <div style={styles.formWrapper}>
         <div style={styles.header}>
-          <button style={styles.back} onClick={() => navigate("/employees")}>
+          <button style={styles.backBtn} onClick={() => navigate("/employees")}>
             ← Back
           </button>
-          <h2 style={styles.heading}>
+          <h1 style={styles.title}>
             {isEdit ? "Edit Employee" : "Add Employee"}
-          </h2>
+          </h1>
         </div>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>Personal Info</h3>
+            <h2 style={styles.sectionTitle}>Personal Info</h2>
             <div style={styles.row}>
-              <Field label="Full Name" required>
+              <div style={styles.field}>
+                <label>Full Name *</label>
                 <input
                   style={styles.input}
                   value={form.name}
-                  onChange={set("name")}
-                  placeholder="John Doe"
+                  onChange={handleChange("name")}
                   required
                 />
-              </Field>
-              <Field label="Email" required>
+              </div>
+              <div style={styles.field}>
+                <label>Email *</label>
                 <input
                   style={styles.input}
                   type="email"
                   value={form.email}
-                  onChange={set("email")}
-                  placeholder="john@company.com"
+                  onChange={handleChange("email")}
                   required
                 />
-              </Field>
+              </div>
             </div>
+
             <div style={styles.row}>
-              <Field label="Job Title" required>
+              <div style={styles.field}>
+                <label>Job Title *</label>
                 <input
                   style={styles.input}
                   value={form.jobtitle}
-                  onChange={set("jobtitle")}
-                  placeholder="Software Engineer"
+                  onChange={handleChange("jobtitle")}
                   required
                 />
-              </Field>
-              <Field label="Department" required>
+              </div>
+              <div style={styles.field}>
+                <label>Department *</label>
                 <select
                   style={styles.input}
                   value={form.department}
-                  onChange={set("department")}
+                  onChange={handleChange("department")}
                   required
                 >
                   <option value="">Select department</option>
@@ -186,195 +212,154 @@ export default function EmployeeForm() {
                     </option>
                   ))}
                 </select>
-              </Field>
+              </div>
             </div>
-            <div style={{ ...styles.row, gridTemplateColumns: "1fr" }}>
-              <Field label="Supervisor (optional)">
-                <select
-                  style={styles.input}
-                  value={form.supervisor}
-                  onChange={set("supervisor")}
-                >
-                  <option value="">No supervisor</option>
-                  {employees
-                    .filter((e) => e._id !== id)
-                    .map((e) => (
-                      <option key={e._id} value={e._id}>
-                        {e.name} — {e.jobtitle}
-                      </option>
-                    ))}
-                </select>
-              </Field>
+
+            <div style={styles.field}>
+              <label>Supervisor (Optional)</label>
+              <select
+                style={styles.input}
+                value={form.supervisor}
+                onChange={handleChange("supervisor")}
+              >
+                <option value="">No Supervisor</option>
+                {employees
+                  .filter((e) => e._id !== id)
+                  .map((e) => (
+                    <option key={e._id} value={e._id}>
+                      {e.name} ({e.jobtitle})
+                    </option>
+                  ))}
+              </select>
             </div>
           </div>
 
+          {/* Location */}
           <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>Location</h3>
+            <h2 style={styles.sectionTitle}>Location</h2>
             <div style={styles.row}>
-              <Field label="Country" required>
+              <div style={styles.field}>
+                <label>Country *</label>
                 <select
                   style={styles.input}
                   value={form.country}
-                  onChange={set("country")}
+                  onChange={handleChange("country")}
                   required
                 >
                   <option value="">Select country</option>
-                  {countries.map((c) => (
-                    <option key={c.country} value={c.country}>
+                  {countries.map((c, i) => (
+                    <option key={i} value={c.country}>
                       {c.country}
                     </option>
                   ))}
                 </select>
-              </Field>
-              <Field label="State / Province" required>
+              </div>
+
+              <div style={styles.field}>
+                <label>State *</label>
                 <select
                   style={styles.input}
                   value={form.state}
-                  onChange={set("state")}
+                  onChange={handleChange("state")}
                   required
                   disabled={!form.country}
                 >
                   <option value="">Select state</option>
-                  {states.map((s) => (
-                    <option key={s.name} value={s.name}>
-                      {s.name}
+                  {states.map((s, i) => (
+                    <option key={i} value={s}>
+                      {s}
                     </option>
                   ))}
                 </select>
-              </Field>
+              </div>
             </div>
-            <div style={{ ...styles.row, gridTemplateColumns: "1fr" }}>
-              <Field label="City" required>
-                <select
-                  style={styles.input}
-                  value={form.city}
-                  onChange={set("city")}
-                  required
-                  disabled={!form.state}
-                >
-                  <option value="">Select city</option>
-                  {cities.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+
+            <div style={styles.field}>
+              <label>City *</label>
+              <select
+                style={styles.input}
+                value={form.city}
+                onChange={handleChange("city")}
+                required
+                disabled={!form.state}
+              >
+                <option value="">Select city</option>
+                {cities.map((c, i) => (
+                  <option key={i} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           {error && <p style={styles.error}>{error}</p>}
 
-          <div style={styles.btnRow}>
-            <button
-              type="button"
-              style={styles.cancelBtn}
-              onClick={() => navigate("/employees")}
-            >
-              Cancel
-            </button>
-            <button type="submit" style={styles.submitBtn} disabled={loading}>
-              {loading
-                ? "Saving..."
-                : isEdit
-                  ? "Update Employee"
-                  : "Add Employee"}
-            </button>
-          </div>
+          <button type="submit" style={styles.submitBtn} disabled={loading}>
+            {loading
+              ? "Saving..."
+              : isEdit
+                ? "Update Employee"
+                : "Add Employee"}
+          </button>
         </form>
       </div>
     </div>
   );
 }
 
-function Field({ label, required, children }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-      <label style={{ fontSize: "13px", fontWeight: "500", color: "#aaa" }}>
-        {label} {required && <span style={{ color: "#6366f1" }}>*</span>}
-      </label>
-      {children}
-    </div>
-  );
-}
-
 const styles = {
-  page: {
+  container: {
     minHeight: "100vh",
-    background: "#0f0f0f",
-    fontFamily: "'DM Sans', sans-serif",
+    backgroundColor: "#1a1a1a",
+    color: "#e0e0e0",
+    padding: "20px",
   },
-  container: { maxWidth: "720px", margin: "0 auto", padding: "32px 24px" },
+  formWrapper: { maxWidth: "900px", margin: "0 auto" },
   header: {
     display: "flex",
     alignItems: "center",
-    gap: "16px",
-    marginBottom: "28px",
+    gap: "15px",
+    marginBottom: "30px",
   },
-  back: {
-    background: "none",
+  backBtn: {
+    padding: "8px 16px",
+    background: "#333",
+    color: "#fff",
     border: "none",
-    color: "#666",
-    fontSize: "14px",
+    borderRadius: "6px",
     cursor: "pointer",
-    padding: 0,
   },
-  heading: {
-    color: "#fff",
-    fontSize: "22px",
-    fontWeight: "700",
-    margin: 0,
-    letterSpacing: "-0.5px",
+  title: { margin: 0, fontSize: "28px", color: "#fff" },
+  form: { backgroundColor: "#252525", padding: "30px", borderRadius: "12px" },
+  section: { marginBottom: "40px" },
+  sectionTitle: { fontSize: "20px", marginBottom: "15px", color: "#ccc" },
+  row: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "20px",
+    marginBottom: "20px",
   },
-  form: { display: "flex", flexDirection: "column", gap: "24px" },
-  section: {
-    background: "#1a1a1a",
-    border: "1px solid #2a2a2a",
-    borderRadius: "12px",
-    padding: "24px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-  },
-  sectionTitle: {
-    color: "#fff",
-    fontSize: "14px",
-    fontWeight: "600",
-    margin: "0 0 4px",
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
-  },
-  row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" },
+  field: { marginBottom: "15px" },
   input: {
-    background: "#111",
-    border: "1px solid #2a2a2a",
-    borderRadius: "8px",
-    padding: "10px 14px",
-    color: "#fff",
-    fontSize: "14px",
-    outline: "none",
     width: "100%",
-    boxSizing: "border-box",
-  },
-  error: { color: "#ef4444", fontSize: "13px", margin: 0 },
-  btnRow: { display: "flex", gap: "12px", justifyContent: "flex-end" },
-  cancelBtn: {
-    background: "#1a1a1a",
-    border: "1px solid #2a2a2a",
-    color: "#888",
-    borderRadius: "8px",
-    padding: "10px 20px",
-    fontSize: "14px",
-    cursor: "pointer",
+    padding: "12px",
+    backgroundColor: "#333",
+    color: "#fff",
+    border: "1px solid #555",
+    borderRadius: "6px",
+    fontSize: "16px",
   },
   submitBtn: {
-    background: "#6366f1",
+    width: "100%",
+    padding: "14px",
+    backgroundColor: "#3b82f6",
     color: "#fff",
     border: "none",
     borderRadius: "8px",
-    padding: "10px 24px",
-    fontSize: "14px",
-    fontWeight: "600",
+    fontSize: "18px",
     cursor: "pointer",
+    marginTop: "20px",
   },
+  error: { color: "#ff6b6b", textAlign: "center", margin: "15px 0" },
 };

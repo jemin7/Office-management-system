@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import Departments from "./pages/Departments";
-import Employees from "./pages/Employees";
-import EmployeeForm from "./pages/EmployeeForm";
+import Login from "./pages/Login.jsx";
+import Departments from "./pages/Departments.jsx";
+import Employees from "./pages/Employees.jsx";
+import EmployeeForm from "./pages/EmployeeForm.jsx";
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
 
@@ -12,13 +12,17 @@ export default function Employees() {
   const [department, setDepartment] = useState("");
   const [loading, setLoading] = useState(false);
   const limit = 10;
+
   const navigate = useNavigate();
+  const location = useLocation();
 
   const fetchDepartments = async () => {
     try {
       const res = await api.get("/departments");
       setDepartments(res.data.data || []);
-    } catch (_) {}
+    } catch (_) {
+      console.error("Failed to load departments");
+    }
   };
 
   const fetchEmployees = async () => {
@@ -27,11 +31,14 @@ export default function Employees() {
       const params = { page, limit };
       if (search) params.search = search;
       if (department) params.department = department;
+
       const res = await api.get("/employees", { params });
-      setEmployees(res.data.data?.data || []);
+      setEmployees(res.data.data?.data || res.data.data || []);
       setTotal(res.data.data?.total || 0);
-    } catch (_) {
+    } catch (err) {
+      console.error("Failed to fetch employees:", err);
       setEmployees([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
@@ -40,9 +47,19 @@ export default function Employees() {
   useEffect(() => {
     fetchDepartments();
   }, []);
+
   useEffect(() => {
     fetchEmployees();
-  }, [page, department]);
+  }, [page, department, search]);
+
+  useEffect(() => {
+    const { refresh } = location.state || {};
+    if (refresh) {
+      fetchEmployees();
+
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -55,7 +72,9 @@ export default function Employees() {
     try {
       await api.delete(`/employees/${id}`);
       fetchEmployees();
-    } catch (_) {}
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
   };
 
   const totalPages = Math.ceil(total / limit);
@@ -143,7 +162,7 @@ export default function Employees() {
                 employees.map((emp) => (
                   <tr key={emp._id} style={styles.tr}>
                     <td style={styles.td}>
-                      <div style={styles.avatar}>{emp.name[0]}</div>
+                      <div style={styles.avatar}>{emp.name?.[0] || "?"}</div>
                       <span style={styles.name}>{emp.name}</span>
                     </td>
                     <td style={styles.td}>
@@ -162,7 +181,9 @@ export default function Employees() {
                     </td>
                     <td style={styles.td}>
                       <span style={styles.muted}>
-                        {emp.city}, {emp.country}
+                        {emp.city && emp.country
+                          ? `${emp.city}, ${emp.country}`
+                          : "—"}
                       </span>
                     </td>
                     <td style={styles.td}>
@@ -308,7 +329,6 @@ const styles = {
     fontSize: "14px",
     color: "#ddd",
     verticalAlign: "middle",
-    display: "revert",
   },
   avatar: {
     display: "inline-flex",

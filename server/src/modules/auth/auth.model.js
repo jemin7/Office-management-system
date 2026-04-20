@@ -8,7 +8,6 @@ const adminSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
       required: [true, "Email is required"],
-      // ADD THIS MATCH PROPERTY:
       match: [
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
         "Please enter a valid email address",

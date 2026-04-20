@@ -32,23 +32,30 @@ const getAllService = async (query) => {
   if (department) filter.department = department;
   if (jobtitle) filter.jobtitle = { $regex: jobtitle, $options: "i" };
 
-  const [employees, total] = await Promise.all([
-    Employee.find(filter)
-      .populate("department")
-      .populate("supervisor", "name email jobtitle")
-      .skip(skip)
-      .limit(limitNum)
-      .sort({ createdAt: -1 }),
-    Employee.countDocuments(filter),
-  ]);
+  try {
+    const [employees, total] = await Promise.all([
+      Employee.find(filter)
+        .populate("department", "name") // ← safer, only fetch name
+        .populate("supervisor", "name email jobtitle")
+        .skip(skip)
+        .limit(limitNum)
+        .sort({ createdAt: -1 }),
+      Employee.countDocuments(filter),
+    ]);
 
-  return {
-    total,
-    page: pageNum,
-    limit: limitNum,
-    totalPages: Math.ceil(total / limitNum),
-    data: employees,
-  };
+    return {
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+      data: employees,
+    };
+  } catch (error) {
+    console.error("❌ getAllService Error:", error.message);
+    // Optional: log more details
+    // console.error("Stack:", error.stack);
+    throw ApiError.internal("Failed to fetch employees");
+  }
 };
 
 const getOneService = async (id) => {
