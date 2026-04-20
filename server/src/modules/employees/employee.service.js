@@ -3,8 +3,9 @@ import Employee from "./employee.model.js";
 
 const createService = async (data) => {
   const existing = await Employee.findOne({ email: data.email });
-  if (existing) throw ApiError.Conflict("Email already exists");
-  return await Employee.create(data);
+  if (existing) throw ApiError.conflict("Email already exists");
+  const employee = await Employee.create(data);
+  return employee.populate(["department", "supervisor"]);
 };
 
 const getAllService = async (query) => {
@@ -13,12 +14,7 @@ const getAllService = async (query) => {
   const pageNum = Number(page);
   const limitNum = Number(limit);
 
-  if (
-    Number.isNaN(pageNum) ||
-    Number.isNaN(limitNum) ||
-    pageNum < 1 ||
-    limitNum < 1
-  ) {
+  if (isNaN(pageNum) || isNaN(limitNum) || pageNum < 1 || limitNum < 1) {
     throw ApiError.badRequest("Invalid pagination input");
   }
 
@@ -33,51 +29,52 @@ const getAllService = async (query) => {
   }
 
   if (department) filter.department = department;
-  if (jobtitle) filter.jobtitle = jobtitle;
+  if (jobtitle) filter.jobtitle = { $regex: jobtitle, $options: "i" };
 
-  const employees = await Employee.find(filter)
-    .populate("department")
-    .populate("supervisor")
-    .skip(skip)
-    .limit(limitNum)
-    .sort({ createdAt: -1 });
+  const [employees, total] = await Promise.all([
+    Employee.find(filter)
+      .populate("department")
+      .populate("supervisor", "name email jobtitle")
+      .skip(skip)
+      .limit(limitNum)
+      .sort({ createdAt: -1 }),
+    Employee.countDocuments(filter),
+  ]);
 
-  const total = await Employee.countDocuments(filter);
-
-  return { total, page: pageNum, limit: limitNum, data: employees };
+  return {
+    total,
+    page: pageNum,
+    limit: limitNum,
+    totalPages: Math.ceil(total / limitNum),
+    data: employees,
+  };
 };
 
 const getOneService = async (id) => {
   const employee = await Employee.findById(id)
     .populate("department")
-    .populate("supervisor");
-
-  if (!employee) {
-    throw ApiError.notFound("Employee not found");
-  }
-
+    .populate("supervisor", "name email jobtitle");
+  if (!employee) throw ApiError.notFound("Employee not found");
   return employee;
 };
+
 const updateService = async (id, data) => {
+  if (data.supervisor === "") data.supervisor = null;
+
   const employee = await Employee.findByIdAndUpdate(id, data, {
     new: true,
     runValidators: true,
-  });
+  })
+    .populate("department")
+    .populate("supervisor", "name email jobtitle");
 
-  if (!employee) {
-    throw ApiError.notFound("Employee not found");
-  }
-
+  if (!employee) throw ApiError.notFound("Employee not found");
   return employee;
 };
 
 const removeService = async (id) => {
   const employee = await Employee.findByIdAndDelete(id);
-
-  if (!employee) {
-    throw ApiError.notFound("Employee not found");
-  }
-
+  if (!employee) throw ApiError.notFound("Employee not found");
   return employee;
 };
 

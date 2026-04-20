@@ -15,6 +15,7 @@ const EmployeeSchema = new mongoose.Schema(
       lowercase: true,
       unique: true,
       required: [true, "Email is required"],
+      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, "Invalid email"],
     },
     jobtitle: {
       type: String,
@@ -34,16 +35,11 @@ const EmployeeSchema = new mongoose.Schema(
     },
     country: {
       type: String,
-      required: [true, "country is required"],
+      trim: true,
+      required: [true, "Country is required"],
     },
-    state: {
-      type: String,
-      required: [true, "state is required"],
-    },
-    city: {
-      type: String,
-      required: [true, "city is required"],
-    },
+    state: { type: String, trim: true, required: [true, "State is required"] },
+    city: { type: String, trim: true, required: [true, "City is required"] },
   },
   { timestamps: true },
 );
