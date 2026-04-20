@@ -31,16 +31,3 @@ The Office Management System is a full-stack web application built to manage com
 The project is divided into two main directories following an MVC architecture on the backend:
 * `/client`: Contains the React frontend application.
 * `/server`: Contains the Node.js/Express backend API.
-
----
-
-## ⚙️ Installation & Setup Instructions
-
-### Prerequisites
-* [Node.js](https://nodejs.org/) (v16+)
-* [MongoDB](https://www.mongodb.com/) (Local installation or MongoDB Atlas URI)
-
-### 1. Backend Setup (`/server`)
-1. Open your terminal and navigate to the server directory:
-   ```bash
-   cd server
