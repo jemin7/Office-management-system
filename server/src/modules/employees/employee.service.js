@@ -4,9 +4,9 @@ import Employee from "./employee.model.js";
 const createService = async (data) => {
   const existing = await Employee.findOne({ email: data.email });
   if (existing) throw ApiError.Conflict("Email already exists");
-  const employeeobj = await Employee.create(data);
-  return employeeobj;
+  return await Employee.create(data);
 };
+
 const getAllService = async (query) => {
   const { page = 1, limit = 10, search, department, jobtitle } = query;
 
@@ -23,7 +23,6 @@ const getAllService = async (query) => {
   }
 
   const skip = (pageNum - 1) * limitNum;
-
   const filter = {};
 
   if (search) {
@@ -33,13 +32,8 @@ const getAllService = async (query) => {
     ];
   }
 
-  if (department) {
-    filter.department = department;
-  }
-
-  if (jobtitle) {
-    filter.jobtitle = jobtitle;
-  }
+  if (department) filter.department = department;
+  if (jobtitle) filter.jobtitle = jobtitle;
 
   const employees = await Employee.find(filter)
     .populate("department")
@@ -50,31 +44,41 @@ const getAllService = async (query) => {
 
   const total = await Employee.countDocuments(filter);
 
-  return {
-    total,
-    page: pageNum,
-    limit: limitNum,
-    data: employees,
-  };
+  return { total, page: pageNum, limit: limitNum, data: employees };
+};
 
-  const getOneService = async (id) => {
-    const employee = Employee.findById(id)
-      .populate("department")
-      .populate("super");
+const getOneService = async (id) => {
+  const employee = await Employee.findById(id)
+    .populate("department")
+    .populate("supervisor");
 
-    if (!employee) {
-      throw ApiError.notFound("Employee not found");
-    }
-    return employee;
-  };
+  if (!employee) {
+    throw ApiError.notFound("Employee not found");
+  }
 
-  const removeSerivce = async (id) => {
-    const employee = Employee.findById(id);
-    if (!employee) {
-      throw ApiError.notFound("Employee not found");
-    }
-    return employee;
-  };
+  return employee;
+};
+const updateService = async (id, data) => {
+  const employee = await Employee.findByIdAndUpdate(id, data, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!employee) {
+    throw ApiError.notFound("Employee not found");
+  }
+
+  return employee;
+};
+
+const removeService = async (id) => {
+  const employee = await Employee.findByIdAndDelete(id);
+
+  if (!employee) {
+    throw ApiError.notFound("Employee not found");
+  }
+
+  return employee;
 };
 
 export {

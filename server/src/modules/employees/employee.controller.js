@@ -20,8 +20,8 @@ const getAll = async (req, res) => {
 };
 
 const getOne = async (req, res) => {
-  const data = await getOneService(req.query);
-  ApiResponse.ok(res, "got one employees", data);
+  const data = await getOneService(req.params.id); 
+  ApiResponse.ok(res, "got one employee", data);
 };
 
 const update = async (req, res) => {
@@ -36,6 +36,5 @@ const remove = async (req, res) => {
   const data = await removeService(req.params.id);
   ApiResponse.ok(res, "delete successfully",data);
 };
-export { create, getAll, update, remove };
-
+export { create, getAll, getOne, update, remove };
 

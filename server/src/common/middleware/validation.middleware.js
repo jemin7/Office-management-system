@@ -1,21 +1,28 @@
 import ApiError from "../utils/api-error.js";
+const validate = (schema, source = "body") => {
+  return (req, res, next) => {
+    const data = source === "query" ? req.query : req.body;
 
+    const { error, value } = schema.validate(data, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
 
-
-function validate(Dtoclass, source = 'body')  {
-    return (req, res, next) => {
-      const { errors, value } = Dtoclass.validate(req[source]); 
-
-      if (errors) {
-        throw ApiError.badrequest(errors.join("; "));
-      }
-
-      req[source] = value;
-      next();
+    if (error) {
+      const message = error.details
+        .map((details) => details.message)
+        .join(", ");
+      throw ApiError.badRequest(message);
     }
-}
+
+    if (source === "query") {
+      req.query = value;
+    } else {
+      req.body = value;
+    }
+
+    next();
+  };
+};
+
 export default validate;
-
-
-
-export default validate

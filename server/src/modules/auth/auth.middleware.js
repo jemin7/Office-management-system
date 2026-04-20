@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import ApiError from "../utils/api-error.js";
+import ApiError from "../../common/utils/api-error.js";
 
 const verifyAdmin = (req, res, next) => {
   const authHeader = req.headers.authorization;

@@ -3,8 +3,7 @@ import cors from "cors";
 import authRoutes from "./modules/auth/auth.routes.js";
 import employeeRoutes from "./modules/employees/employee.routes.js";
 import departmentRoutes from "./modules/departments/department.routes.js";
-import verifyAdmin from "./common/middleware/auth.middleware.js";
-
+import verifyAdmin from "./modules/auth/auth.middleware.js";
 const app = express();
 
 app.use(cors());

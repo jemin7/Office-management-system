@@ -1,7 +1,6 @@
 import Admin from "./auth.model.js";
 import ApiError from "../../common/utils/api-error.js";
-import { generatetoken } from "../../common/utils/jwt.js";
-
+import { generateToken } from "../../common/utils/jwt.js";
 const loginService = async ({ email, password }) => {
   const admin = await Admin.findOne({ email });
   if (!admin) throw ApiError.unauthorized("Invalid email or password");
@@ -11,7 +10,6 @@ const loginService = async ({ email, password }) => {
 
   const { rawtoken, hashedtoken } = generatetoken();
 };
-
 
 const registerAdminService = async (email, password) => {
   const existingAdmin = await Admin.findOne({ email });

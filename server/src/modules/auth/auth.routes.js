@@ -1,7 +1,8 @@
 import { Router } from "express";
+import validate from "../../common/middleware/validation.middleware.js";
+import loginDto from "./dto/logindto.js";
 import * as controller from "./auth.controller.js";
-import verifyAdmin from "./common/middleware/auth.middleware.js"; 
-
+import verifyAdmin from "./auth.middleware.js";
 const router = Router();
 router.post("/login", validate(loginDto), controller.login);
 router.post("/register", controller.register);

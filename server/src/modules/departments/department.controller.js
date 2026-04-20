@@ -1,4 +1,4 @@
-import ApiResponse from "../../common/utils/api-response";
+import ApiResponse from "../../common/utils/api-response.js";
 import {
   createdepartment,
   getAllDepartmentsService,
@@ -14,8 +14,4 @@ const getAll = async (req, res) => {
   ApiResponse.ok(res, "all departments", department);
 };
 
-
-
-
-
-export {create,getAll}
+export { create, getAll };
