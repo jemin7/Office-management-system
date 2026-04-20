@@ -9,14 +9,10 @@ import updateDto from "./dto/update-employee.dto.js";
 
 const router = Router();
 
-router.post("/employees", validate(createDto), controller.create);
-
-router.get("/employees", validate(queryDto), controller.getall);
-
-router.get("/employees/:id", controller.getOne);
-
-router.put("/employees/:id", validate(updateDto), controller.update);
-
-router.delete("/employees/:id", controller.remove);
+router.post("/", validate(createDto), controller.create);
+router.get("/", validate(queryDto, "query"), controller.getAll); 
+router.get("/:id", controller.getOne);
+router.put("/:id", validate(updateDto), controller.update);
+router.delete("/:id", controller.remove);
 
 export default router;

@@ -1,11 +1,9 @@
-import crypto from "crypto";
+import jwt from "jsonwebtoken";
 
-export const generateToken = () => {
-  const rawtoken = crypto.randomBytes(32).toString("hex");
-  const hashedtoken = crypto
-    .createHash("sha256")
-    .update(rawtoken)
-    .digest("hex");
+const JWT_SECRET = process.env.JWT_SECRET || "your_super_secret_key";
 
-  return { rawtoken, hashedtoken };
+export const generateToken = (adminId) => {
+  return jwt.sign({ id: adminId }, JWT_SECRET, {
+    expiresIn: "1d",
+  });
 };
