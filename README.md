@@ -1,21 +1,46 @@
 # Office Management System
 
-## Project Overview
-This project is a RESTful Office Management System built using Node.js, Express, and MongoDB for the backend, paired with a React frontend for a modern UI. The system allows for managing departments and employees, including defining relationships between them. It also includes a JWT-based login system for an Admin to manage the application.
+## 📌 Project Overview
+The Office Management System is a full-stack web application built to manage company departments and employees efficiently. It features a RESTful API backend and a modern single-page application frontend. The system supports complex employee relationships (like self-referencing supervisors), server-side pagination, advanced filtering, and dynamic location data fetching using an external API.
 
-**Key Features:**
-* **CRUD Operations:** Simple interface for creating, reading, updating, and deleting Departments and Employees.
-* **Employee Relationships:** Assign employees to departments and assign supervisors using self-referencing relationships.
-* **Advanced Employee Listing:** A RESTful API that implements server-side pagination, search by name/email, and filtering by department or job title.
-* **Dynamic Location Data:** Integration with an external API (like CountriesNow or Universal Tutorial API) to dynamically populate Country, State, and City dropdowns in the Employee Create/Edit form.
+### 🚀 Key Features
+* **Authentication:** Secure JWT-based Admin login to manage the system.
+* **Department Management:** Full CRUD (Create, Read, Update, Delete) operations for organizational departments.
+* **Employee Management:** Full CRUD operations for employees with relational data mapping:
+  * Assign employees to specific departments.
+  * Assign a supervisor to an employee (self-referencing relationship).
+* **Advanced Data Handling:** Server-side pagination, search (by name/email), and filtering (by department/job title) for employee listings.
+* **Dynamic Location Selection:** Integration with an external API (CountriesNow / Universal Tutorial API) to dynamically populate Country, State, and City dropdowns during employee creation/editing.
 
-## Installation & Setup Instructions
+---
 
-**Prerequisites:**
-* [Node.js](https://nodejs.org/) installed on your machine.
-* [MongoDB](https://www.mongodb.com/) installed locally or a MongoDB Atlas URI.
+## 🛠️ Tech Stack
+**Frontend:**
+* React (Vite)
+* Tailwind CSS (or standard CSS)
+* Axios (for API requests)
 
-### 1. Clone the Repository
-```bash
-git clone <your-github-repo-link>
-cd office-management-system
+**Backend:**
+* Node.js & Express.js
+* MongoDB & Mongoose ODM
+* JSON Web Token (JWT) for Authentication
+
+---
+
+## 📂 Project Structure
+The project is divided into two main directories following an MVC architecture on the backend:
+* `/client`: Contains the React frontend application.
+* `/server`: Contains the Node.js/Express backend API.
+
+---
+
+## ⚙️ Installation & Setup Instructions
+
+### Prerequisites
+* [Node.js](https://nodejs.org/) (v16+)
+* [MongoDB](https://www.mongodb.com/) (Local installation or MongoDB Atlas URI)
+
+### 1. Backend Setup (`/server`)
+1. Open your terminal and navigate to the server directory:
+   ```bash
+   cd server
