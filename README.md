@@ -4,8 +4,6 @@
 A full-stack Office Management System built with **React + Node.js/Express + MongoDB**.  
 It allows managing departments and employees with proper relationships, dynamic location selection (Country → State → City), authentication, and more.
 
-**Live Demo**: (Add link if deployed)  
-**Assignment Submission**: [GitHub Repo](https://github.com/jemin7/Office-management-system)
 
 ## 📋 Project Overview
 
