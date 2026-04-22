@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import ApiError from "../../common/utils/api-error.js";
 
-const verifyAdmin = (req, res, next) => {
+const verifyAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -15,11 +15,27 @@ const verifyAdmin = (req, res, next) => {
       token,
       process.env.JWT_SECRET || "fallback_secret",
     );
-    req.admin = decoded;
+    req.user = decoded;
     next();
   } catch (error) {
     return next(ApiError.unauthorized("Invalid or expired token."));
   }
 };
 
-export default verifyAdmin;
+const requireRole = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return next(ApiError.unauthorized("Authentication required."));
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return next(ApiError.unauthorized("Insufficient permissions."));
+    }
+
+    next();
+  };
+};
+
+const requireAdmin = requireRole("admin");
+
+export { verifyAuth, requireRole, requireAdmin };

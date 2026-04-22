@@ -1,120 +1,119 @@
-
 # Office Management System
 
-A full-stack Office Management System built with **React + Node.js/Express + MongoDB**.  
-It allows managing departments and employees with proper relationships, dynamic location selection (Country → State → City), authentication, and more.
+A full-stack Office Management System built with React, Express, and MongoDB.
 
-**Live Demo**: (Add link if deployed)  
-**Assignment Submission**: [GitHub Repo](https://github.com/jemin7/Office-management-system)
+## What Changed
 
-## 📋 Project Overview
+The project now supports role-based authentication:
 
-This project fulfills the **Node.js Office Management System** assignment requirements:
+- All users can log in (admins and employees with account credentials).
+- Only users with the `admin` role can create, update, or delete data.
+- Non-admin users can log in and view employees and departments in read-only mode.
 
-- Full CRUD for **Departments** and **Employees**
-- Employee → Department relationship
-- Self-referencing **Supervisor** feature (one employee can supervise others)
-- Dynamic **Country, State, City** dropdowns using external API
-- Server-side **Pagination, Search & Filter**
-- JWT-based **Authentication** (Bonus)
-- Modern **React** frontend (Bonus – instead of EJS/Pug)
+## Tech Stack
 
-## ✨ Features
+- Frontend: React + Vite
+- Backend: Node.js + Express
+- Database: MongoDB + Mongoose
+- Auth: JWT
 
-### Backend
-- RESTful API with Express
-- MongoDB + Mongoose (Models with proper relationships)
-- Employee CRUD + Populate (Department & Supervisor)
-- Department CRUD
-- Pagination, Search by name/email, Filter by department
-- JWT Authentication
+## Local Setup
 
-### Frontend
-- Modern React + Vite
-- Employee & Department Management
-- Dynamic Country → State → City dropdowns (using CountriesNow API)
-- Responsive UI with dark theme
-- Form validation and error handling
+## 1. Backend
 
-## 🛠️ Tech Stack
+1. Go to server folder:
+   ```bash
+   cd server
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create env file:
+   ```bash
+   cp .env.example .env
+   ```
+4. Fill values in `.env`:
+   - `PORT`
+   - `DB_URL`
+   - `JWT_SECRET`
+   - `CLIENT_URLS` (comma-separated list of frontend URLs)
 
-| Layer      | Technology                          |
-|------------|-------------------------------------|
-| Frontend   | React, Vite, JavaScript, CSS        |
-| Backend    | Node.js, Express                    |
-| Database   | MongoDB + Mongoose                  |
-| Auth       | JWT                                 |
-| External API | CountriesNow (Country/State/City) |
-| HTTP Client | Axios                              |
+5. Run backend:
+   ```bash
+   npm run dev
+   ```
 
-## 🚀 Installation & Setup
+## 2. Frontend
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/jemin7/Office-management-system.git
-cd Office-management-system
-2. Backend Setup
-Bashcd server
-npm install
+1. Go to client folder:
+   ```bash
+   cd client
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create `.env` with:
+   ```env
+   VITE_API_URL=http://localhost:5000/api
+   ```
+4. Run frontend:
+   ```bash
+   npm run dev
+   ```
 
-# Create .env file (see .env.example)
-cp .env.example .env
-.env variables needed:
-envPORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-3. Frontend Setup
-Bashcd ../client
-npm install
-4. Run the application
-Terminal 1 – Backend
-Bashcd server
-npm start
-Terminal 2 – Frontend
-Bashcd client
-npm run dev
-Open http://localhost:5173 in your browser.
-📌 API Endpoints (Backend)
-Departments
+## API Security Rules
 
-GET /api/departments – Get all departments
-POST /api/departments – Create department
-PUT /api/departments/:id – Update department
-DELETE /api/departments/:id – Delete department
+- Authenticated routes:
+  - `GET /api/employees`
+  - `GET /api/employees/:id`
+  - `GET /api/departments`
+- Admin-only routes:
+  - `POST /api/employees`
+  - `PUT /api/employees/:id`
+  - `DELETE /api/employees/:id`
+  - `POST /api/departments`
+  - `PUT /api/departments/:id`
+  - `DELETE /api/departments/:id`
 
-Employees
+## API Documentation
 
-GET /api/employees – Get employees (with pagination, search, filter)
-POST /api/employees – Create employee
-GET /api/employees/:id – Get single employee
-PUT /api/employees/:id – Update employee
-DELETE /api/employees/:id – Delete employee
+- Postman collection file: `Office_Management_System.postman_collection.json`
+- Import the collection in Postman and set variables:
+  - `baseUrl` (default: `http://localhost:5000/api`)
+  - `token` (JWT from login response)
+  - `departmentId`
+  - `employeeId`
 
-📁 Project Structure
-textOffice-management-system/
-├── client/                 # React Frontend
-│   ├── src/
-│   │   ├── pages/          # EmployeeForm, Employees, etc.
-│   │   ├── components/
-│   │   └── api/axios.js
-│   └── package.json
-├── server/                 # Node.js Backend
-│   ├── src/
-│   │   ├── models/
-│   │   ├── controllers/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   └── middleware/
-│   ├── server.js
-│   └── package.json
-├── README.md
-└── .gitignore
-✅ Assignment Requirements Fulfilled
+## Deployment
 
- Department & Employee CRUD
- Department selection when creating employee
- Supervisor (self-referencing)
- Server-side Pagination, Search, Filter
- External API for Country → State → City
- Proper MVC structure
-Bonus: React frontend + JWT Authentication
+## Frontend on Vercel
+
+The file `client/vercel.json` is included to support SPA routing.
+
+1. Import the repository in Vercel.
+2. Set project root to `client`.
+3. Build command: `npm run build`
+4. Output directory: `dist`
+5. Add env var:
+   - `VITE_API_URL=https://<your-render-service>.onrender.com/api`
+
+## Backend on Render
+
+The file `render.yaml` is included for Render Blueprint deployment.
+
+1. Create a new Blueprint service in Render from this repository.
+2. Render will use `render.yaml` with root directory `server`.
+3. Set secret env vars in Render:
+   - `DB_URL`
+   - `JWT_SECRET`
+   - `CLIENT_URLS` (include your Vercel domain, for example `https://your-app.vercel.app`)
+4. Health endpoint is available at:
+   - `/api/health`
+
+## Notes
+
+- Employee accounts now require a password.
+- Admins can assign user role (`admin` or `user`) from the employee form.
+- Existing employee records without passwords must be updated by an admin before those users can log in.

@@ -3,10 +3,15 @@ import Login from "./pages/Login.jsx";
 import Departments from "./pages/Departments.jsx";
 import Employees from "./pages/Employees.jsx";
 import EmployeeForm from "./pages/EmployeeForm.jsx";
+import { getToken, isAdmin } from "./utils/auth";
 
 function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("token");
+  const token = getToken();
   return token ? children : <Navigate to="/login" replace />;
+}
+
+function AdminRoute({ children }) {
+  return isAdmin() ? children : <Navigate to="/employees" replace />;
 }
 
 function App() {
@@ -34,7 +39,9 @@ function App() {
           path="/employees/new"
           element={
             <ProtectedRoute>
-              <EmployeeForm />
+              <AdminRoute>
+                <EmployeeForm />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />
@@ -42,7 +49,9 @@ function App() {
           path="/employees/:id/edit"
           element={
             <ProtectedRoute>
-              <EmployeeForm />
+              <AdminRoute>
+                <EmployeeForm />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />

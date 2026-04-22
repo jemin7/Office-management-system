@@ -1,19 +1,56 @@
 import Admin from "./auth.model.js";
+import Employee from "../employees/employee.model.js";
 import ApiError from "../../common/utils/api-error.js";
 import { generateToken } from "../../common/utils/jwt.js";
 
 const loginService = async (email, password) => {
   const admin = await Admin.findOne({ email }).select("+password");
-  if (!admin) throw ApiError.unauthorized("Invalid email or password");
+  if (admin) {
+    const isMatch = await admin.comparePassword(password);
+    if (!isMatch) throw ApiError.unauthorized("Invalid email or password");
 
-  const isMatch = await admin.comparePassword(password);
+    const token = generateToken({
+      id: admin._id,
+      role: "admin",
+      email: admin.email,
+      userType: "admin",
+    });
+
+    return {
+      token,
+      user: {
+        id: admin._id,
+        email: admin.email,
+        role: "admin",
+        userType: "admin",
+      },
+    };
+  }
+
+  const employee = await Employee.findOne({ email }).select("+password");
+  if (!employee || !employee.password) {
+    throw ApiError.unauthorized("Invalid email or password");
+  }
+
+  const isMatch = await employee.comparePassword(password);
   if (!isMatch) throw ApiError.unauthorized("Invalid email or password");
 
-  const token = generateToken(admin._id);
+  const token = generateToken({
+    id: employee._id,
+    role: employee.role || "user",
+    email: employee.email,
+    userType: "employee",
+  });
 
   return {
     token,
-    admin: { email: admin.email, id: admin._id },
+    user: {
+      id: employee._id,
+      email: employee.email,
+      name: employee.name,
+      role: employee.role || "user",
+      userType: "employee",
+    },
   };
 };
 

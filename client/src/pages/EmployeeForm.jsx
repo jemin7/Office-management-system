@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
 
-const COUNTRIES_API = "https:
+const COUNTRIES_API = "https://countriesnow.space/api/v0.1";
 
 export default function EmployeeForm() {
   const { id } = useParams();
@@ -13,6 +13,8 @@ export default function EmployeeForm() {
   const [form, setForm] = useState({
     name: "",
     email: "",
+    password: "",
+    role: "user",
     jobtitle: "",
     department: "",
     supervisor: "",
@@ -29,22 +31,18 @@ export default function EmployeeForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  
   useEffect(() => {
     const loadData = async () => {
       try {
-        
         const countryRes = await fetch(`${COUNTRIES_API}/countries`);
         const countryData = await countryRes.json();
         setCountries(countryData.data || []);
 
-        
         const depRes = await api
           .get("/departments")
           .catch(() => ({ data: { data: [] } }));
         setDepartments(depRes.data.data || []);
 
-        
         const empRes = await api
           .get("/employees")
           .catch(() => ({ data: { data: [] } }));
@@ -53,10 +51,10 @@ export default function EmployeeForm() {
         console.error("Initial data load error:", err);
       }
     };
+
     loadData();
   }, []);
 
-  
   useEffect(() => {
     if (!form.country) {
       setStates([]);
@@ -74,8 +72,7 @@ export default function EmployeeForm() {
         const stateList = (data.data?.states || []).map((s) => s.name || s);
         setStates(stateList);
       })
-      .catch((err) => {
-        console.error("Failed to load states:", err);
+      .catch(() => {
         setStates([]);
       });
 
@@ -83,7 +80,6 @@ export default function EmployeeForm() {
     setCities([]);
   }, [form.country]);
 
-  
   useEffect(() => {
     if (!form.country || !form.state) {
       setCities([]);
@@ -97,34 +93,36 @@ export default function EmployeeForm() {
     })
       .then((res) => res.json())
       .then((data) => setCities(data.data || []))
-      .catch((err) => {
-        console.error("Failed to load cities:", err);
+      .catch(() => {
         setCities([]);
       });
 
     setForm((prev) => ({ ...prev, city: "" }));
   }, [form.state, form.country]);
 
-  
   useEffect(() => {
     if (!isEdit) return;
+
     api
       .get(`/employees/${id}`)
       .then((res) => {
         const emp = res.data.data;
-        setForm({
+        setForm((prev) => ({
+          ...prev,
           name: emp.name || "",
           email: emp.email || "",
+          role: emp.role || "user",
           jobtitle: emp.jobtitle || "",
           department: emp.department?._id || "",
           supervisor: emp.supervisor?._id || "",
           country: emp.country || "",
           state: emp.state || "",
           city: emp.city || "",
-        });
+          password: "",
+        }));
       })
       .catch(() => navigate("/employees"));
-  }, [id, navigate]);
+  }, [id, isEdit, navigate]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -138,6 +136,7 @@ export default function EmployeeForm() {
     try {
       const payload = { ...form };
       if (!payload.supervisor) delete payload.supervisor;
+      if (isEdit && !payload.password) delete payload.password;
 
       if (isEdit) {
         await api.put(`/employees/${id}`, payload);
@@ -145,10 +144,8 @@ export default function EmployeeForm() {
         await api.post("/employees", payload);
       }
 
-      
       navigate("/employees", { state: { refresh: true } });
     } catch (err) {
-      console.error("Submit error:", err);
       setError(err.response?.data?.message || "Failed to save employee");
     } finally {
       setLoading(false);
@@ -161,7 +158,7 @@ export default function EmployeeForm() {
       <div style={styles.formWrapper}>
         <div style={styles.header}>
           <button style={styles.backBtn} onClick={() => navigate("/employees")}>
-            ← Back
+            Back
           </button>
           <h1 style={styles.title}>
             {isEdit ? "Edit Employee" : "Add Employee"}
@@ -169,9 +166,8 @@ export default function EmployeeForm() {
         </div>
 
         <form onSubmit={handleSubmit} style={styles.form}>
-          {/* Personal Info */}
           <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>Personal Info</h2>
+            <h2 style={styles.sectionTitle}>Account</h2>
             <div style={styles.row}>
               <div style={styles.field}>
                 <label>Full Name *</label>
@@ -194,6 +190,37 @@ export default function EmployeeForm() {
               </div>
             </div>
 
+            <div style={styles.row}>
+              <div style={styles.field}>
+                <label>
+                  {isEdit ? "Reset Password (optional)" : "Password *"}
+                </label>
+                <input
+                  style={styles.input}
+                  type="password"
+                  value={form.password}
+                  onChange={handleChange("password")}
+                  required={!isEdit}
+                  minLength={8}
+                />
+              </div>
+              <div style={styles.field}>
+                <label>Role *</label>
+                <select
+                  style={styles.input}
+                  value={form.role}
+                  onChange={handleChange("role")}
+                  required
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.section}>
+            <h2 style={styles.sectionTitle}>Employment</h2>
             <div style={styles.row}>
               <div style={styles.field}>
                 <label>Job Title *</label>
@@ -223,7 +250,7 @@ export default function EmployeeForm() {
             </div>
 
             <div style={styles.field}>
-              <label>Supervisor (Optional)</label>
+              <label>Supervisor (optional)</label>
               <select
                 style={styles.input}
                 value={form.supervisor}
@@ -231,17 +258,16 @@ export default function EmployeeForm() {
               >
                 <option value="">No Supervisor</option>
                 {employees
-                  .filter((e) => e._id !== id)
-                  .map((e) => (
-                    <option key={e._id} value={e._id}>
-                      {e.name} ({e.jobtitle || "No Title"})
+                  .filter((employee) => employee._id !== id)
+                  .map((employee) => (
+                    <option key={employee._id} value={employee._id}>
+                      {employee.name} ({employee.jobtitle || "No Title"})
                     </option>
                   ))}
               </select>
             </div>
           </div>
 
-          {/* Location */}
           <div style={styles.section}>
             <h2 style={styles.sectionTitle}>Location</h2>
             <div style={styles.row}>
@@ -254,9 +280,9 @@ export default function EmployeeForm() {
                   required
                 >
                   <option value="">Select country</option>
-                  {countries.map((c, i) => (
-                    <option key={i} value={c.country}>
-                      {c.country}
+                  {countries.map((country, index) => (
+                    <option key={index} value={country.country}>
+                      {country.country}
                     </option>
                   ))}
                 </select>
@@ -272,9 +298,9 @@ export default function EmployeeForm() {
                   disabled={!form.country}
                 >
                   <option value="">Select state</option>
-                  {states.map((s, i) => (
-                    <option key={i} value={s}>
-                      {s}
+                  {states.map((state, index) => (
+                    <option key={index} value={state}>
+                      {state}
                     </option>
                   ))}
                 </select>
@@ -291,9 +317,9 @@ export default function EmployeeForm() {
                 disabled={!form.state}
               >
                 <option value="">Select city</option>
-                {cities.map((c, i) => (
-                  <option key={i} value={c}>
-                    {c}
+                {cities.map((city, index) => (
+                  <option key={index} value={city}>
+                    {city}
                   </option>
                 ))}
               </select>

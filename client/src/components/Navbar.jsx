@@ -1,11 +1,13 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { clearAuth, getStoredUser } from "../utils/auth";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const user = getStoredUser();
 
   const logout = () => {
-    localStorage.removeItem("token");
+    clearAuth();
     navigate("/login");
   };
 
@@ -34,6 +36,9 @@ export default function Navbar() {
           Departments
         </button>
       </div>
+      <span style={styles.roleBadge}>
+        {(user?.role || "user").toUpperCase()}
+      </span>
       <button style={styles.logout} onClick={logout}>
         Logout
       </button>
@@ -68,6 +73,15 @@ const styles = {
     letterSpacing: "-0.3px",
   },
   links: { display: "flex", gap: "4px", flex: 1 },
+  roleBadge: {
+    fontSize: "11px",
+    letterSpacing: "0.8px",
+    color: "#a5b4fc",
+    border: "1px solid #3b3f8f",
+    background: "#1b1d42",
+    borderRadius: "999px",
+    padding: "4px 10px",
+  },
   link: {
     background: "none",
     border: "none",

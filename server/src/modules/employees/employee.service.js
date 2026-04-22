@@ -70,14 +70,21 @@ const getOneService = async (id) => {
 };
 
 const updateService = async (id, data) => {
-  const employee = await Employee.findByIdAndUpdate(id, data, {
-    new: true,
-    runValidators: true,
-  })
-    .populate("department")
-    .populate("supervisor", "name email jobtitle");
+  const employee = await Employee.findById(id).select("+password");
 
   if (!employee) throw ApiError.notFound("Employee not found");
+
+  if (data.email && data.email !== employee.email) {
+    const existing = await Employee.findOne({ email: data.email });
+    if (existing) throw ApiError.Conflict("Email already exists");
+  }
+
+  Object.assign(employee, data);
+  await employee.save();
+
+  await employee.populate("department");
+  await employee.populate("supervisor", "name email jobtitle");
+
   return employee;
 };
 

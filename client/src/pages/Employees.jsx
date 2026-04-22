@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
+import { isAdmin } from "../utils/auth";
 
 export default function Employees() {
+  const admin = isAdmin();
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [total, setTotal] = useState(0);
@@ -87,12 +89,14 @@ export default function Employees() {
           <h2 style={styles.heading}>
             Employees <span style={styles.count}>{total}</span>
           </h2>
-          <button
-            style={styles.addBtn}
-            onClick={() => navigate("/employees/new")}
-          >
-            + Add Employee
-          </button>
+          {admin && (
+            <button
+              style={styles.addBtn}
+              onClick={() => navigate("/employees/new")}
+            >
+              + Add Employee
+            </button>
+          )}
         </div>
 
         {/* Filters */}
@@ -187,20 +191,26 @@ export default function Employees() {
                       </span>
                     </td>
                     <td style={styles.td}>
-                      <div style={styles.actions}>
-                        <button
-                          style={styles.editBtn}
-                          onClick={() => navigate(`/employees/${emp._id}/edit`)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          style={styles.deleteBtn}
-                          onClick={() => handleDelete(emp._id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
+                      {admin ? (
+                        <div style={styles.actions}>
+                          <button
+                            style={styles.editBtn}
+                            onClick={() =>
+                              navigate(`/employees/${emp._id}/edit`)
+                            }
+                          >
+                            Edit
+                          </button>
+                          <button
+                            style={styles.deleteBtn}
+                            onClick={() => handleDelete(emp._id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={styles.muted}>View only</span>
+                      )}
                     </td>
                   </tr>
                 ))
