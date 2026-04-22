@@ -32,7 +32,7 @@ export default function Login() {
           <span style={styles.brandIcon}>◈</span>
           <h1 style={styles.brandName}>OfficeSys</h1>
         </div>
-        <p style={styles.subtitle}>Admin Portal</p>
+        <p style={styles.subtitle}>Sign in to your account</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.field}>
@@ -42,7 +42,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={styles.input}
-              placeholder="admin@company.com"
+              placeholder="user@company.com"
               required
             />
           </div>
