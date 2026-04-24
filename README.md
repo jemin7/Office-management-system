@@ -2,10 +2,13 @@
 
 A full-stack Office Management System built with React, Express, and MongoDB.
 
-<<<<<<< HEAD
-## What Changed
-=======
->>>>>>> 1d27503d375b007a922c5e8d6c08727a8160ada4
+ADdmin access 
+email - admin@company.com
+password - Password123!
+
+employee access
+email - woderwomen@123.com
+password - Password123!
 
 The project now supports role-based authentication:
 
